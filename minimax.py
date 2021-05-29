@@ -9,25 +9,22 @@ def findTrap(board, player):
             if board[i][j] == player:
                 # list of positions where player can move from (i,j) to 
                 positions = positionsCanMoveTo(board,(i,j))
-                for pos in positions:
-                    # list of pair of position will be carried if player move to pos
-                    pairs = pairsOfOpponentWillBeCarried(board,player,pos)
+                for pos in positions: 
+                    tmpBoard = copyBoard(board)
+                    # change state of chess-board if player move to pos
+                    flag = updateBoard(tmpBoard,player,((i,j),(pos)))
 
-                    # maybe have a trap here?
-                    if len(pairs) > 0:
-                        tmpBoard = copyBoard(board)
-                        # change state of chess-board if player move to pos
-                        updateBoard(tmpBoard,player,((i,j),(pos)))
-
+                    # if player can cary any opponent
+                    if flag:
                         # to check if opponent can move to (i,j)?
                         tmp = positionsCanMoveTo(tmpBoard,(i,j),-player)
                         # if yes
                         if len(tmp)>0:
                             # number of player's chess-piece opponent can carry 
-                            numOfChessPieceOpnCanCarry = len(pairsOfOpponentWillBeCarried(tmpBoard,-player,(i,j)))*2
+                            num = len(pairsOfOpponentWillBeCarried(tmpBoard,-player,(i,j)))*2
 
                             # if there is a trap here!
-                            if numOfChessPieceOpnCanCarry == 4 or numOfChessPieceOpnCanCarry == 6:
+                            if num == 4 or num == 6:
                                 return ((i,j),pos)
     # not have any trap
     return None
@@ -164,6 +161,9 @@ def minimax(board, player, depth, maxDepth, alpha, beta):
 
 
 def updateBoard(board, player, movement):
+    '''
+    Return a flag which indicates that whether player can carry any opponent
+    '''
     pairs = pairsOfOpponentWillBeCarried(board,player,movement[1])
 
     # move a chess-piece to the new position
@@ -196,6 +196,8 @@ def updateBoard(board, player, movement):
             for pos in newGroup:
                 board[pos[0]][pos[1]] = player
 
+    return len(pairs)>0
+
 
 def copyBoard(board):
     '''
@@ -207,18 +209,10 @@ def copyBoard(board):
     return rs
 
 
-def move(board, player):
-    maxDepth = 5
+def move(board, player, maxDepth):
     # alpha = -16, beta = 16 according to the heuristic function
     return minimax(board,player,0,maxDepth,-16,16)[1]
 
-board = [[-1,0,1,0,1],
-        [0,-1,0,0,1],
-        [1,1,-1,0,0],
-        [-1,-1,1,1,1],
-        [-1,0,0,-1,-1]]
-
-print(move(board,-1))
 
 
 
