@@ -1,34 +1,25 @@
 
-def findTrap(board, player):
+def findTrap(board, player, previousBoard):
     '''
     Return tuple (start position, position of trap) if have a trap,
     otherwise return None
     '''
+    if previousBoard == None:
+        return None
+    diff = []
     for i in range(len(board)):
         for j in range(len(board)):
-            if board[i][j] == player:
-                # list of positions where player can move from (i,j) to 
-                positions = positionsCanMoveTo(board,(i,j))
-                for pos in positions: 
-                    tmpBoard = copyBoard(board)
-                    # change state of chess-board if player move to pos
-                    flag = updateBoard(tmpBoard,player,((i,j),(pos)))
-
-                    # if player can cary any opponent
-                    if flag:
-                        # to check if opponent can move to (i,j)?
-                        tmp = positionsCanMoveTo(tmpBoard,(i,j),-player)
-                        # if yes
-                        if len(tmp)>0:
-                            # number of player's chess-piece opponent can carry 
-                            num = len(pairsOfOpponentWillBeCarried(tmpBoard,-player,(i,j)))*2
-
-                            # if there is a trap here!
-                            if num == 4 or num == 6:
-                                return ((i,j),pos)
-    # not have any trap
+            if previousBoard[i][j]!=board[i][j]:
+                diff.append((i,j))
+    if len(diff) == 2:
+        trapPos = diff[0] if previousBoard[diff[0][0]][diff[0][1]]==-player else diff[1]
+        pair = pairsOfOpponentWillBeCarried(board,player,trapPos)
+        if len(pair)>0:
+            pos = positionsCanMoveTo(board,trapPos,player)
+            if len(pos)>0:
+                return (pos[0],trapPos)
     return None
-        
+
 
 def positionsCanMoveTo(board, curPst, flag=0):
     '''
@@ -99,12 +90,12 @@ def pairsOfOpponentWillBeCarried(board, player, desPst):
     return rs
     
 
-def generateMovements(board, player):
+def generateMovements(board, player, previousBoard):
     '''
     Return a list of tuple which each tuple represents a movement player can execute
     '''
     rs = []
-    trap = findTrap(board, player)
+    trap = findTrap(board, player, previousBoard)
     if trap != None:
         rs.append(trap)
         return rs
@@ -129,14 +120,14 @@ def heuristic(board, player):
     return rs
 
 
-def minimax(board, player, depth, maxDepth, alpha, beta):
+def minimax(board, player, depth, maxDepth, alpha, beta, previousBoard):
     '''
     Return a tuple (best heuristic value, best movement)
     '''
     if depth == maxDepth:
         return (heuristic(board,player),None)
     else:
-        movements = generateMovements(board,player)
+        movements = generateMovements(board,player,previousBoard)
         if len(movements) == 0:
             return (heuristic(board,player),None)
         bestMovement = None
@@ -147,7 +138,7 @@ def minimax(board, player, depth, maxDepth, alpha, beta):
             updateBoard(tmpBoard,player,movement)
 
             # get negative of best heuristic value of opponent after player execute the move
-            newValue = -minimax(tmpBoard,-player,depth+1, maxDepth, -beta, -alpha)[0]
+            newValue = -minimax(tmpBoard,-player,depth+1, maxDepth, -beta, -alpha, board)[0]
 
             if newValue>alpha:
                 alpha = newValue
@@ -196,8 +187,6 @@ def updateBoard(board, player, movement):
             for pos in newGroup:
                 board[pos[0]][pos[1]] = player
 
-    return len(pairs)>0
-
 
 def copyBoard(board):
     '''
@@ -209,9 +198,19 @@ def copyBoard(board):
     return rs
 
 
-def move(board, player, maxDepth):
+class Support:
+    previousBoard = None
+
+
+def move(board, player):
+    maxDepth = 4
     # alpha = -16, beta = 16 according to the heuristic function
-    return minimax(board,player,0,maxDepth,-16,16)[1]
+    bestMovement = minimax(board,player,0,maxDepth,-16,16,Support.previousBoard)[1]
+    tmpBoard = board
+    updateBoard(tmpBoard,player,bestMovement)
+    Support.previousBoard = tmpBoard
+    return bestMovement
+
 
 
 
