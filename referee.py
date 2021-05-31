@@ -13,26 +13,29 @@ def printBoard(board):
         for e in row:
             c = '-'
             if e == 1:
-                c = 'X'
-            elif e == -1:
                 c = 'O'
+            elif e == -1:
+                c = 'X'
             print(c,end='   ')
         print()
 
 def startGame(board):
     player = -1
-    i = 0
-    while (i<70):
+    previousBoardO = board
+    while (True):
         movement = None
         if player == -1:
-            movement = move(board,player,2)
+            movement = move(board,player)
         else:
-            movement = choice(generateMovements(board,player))
+            movement = choice(generateMovements(board,player,previousBoardO))
         updateBoard(board,player,movement)
+        if player==1:
+            previousBoardO = board
         printBoard(board)
         print()
+        if gameOver(board,-player):
+            break 
         player = - player
-        i+=1
     
 board = [[1, 1, 1, 1, 1],
         [1, 0, 0, 0, 1],
