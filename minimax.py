@@ -152,9 +152,6 @@ def minimax(board, player, depth, maxDepth, alpha, beta, previousBoard):
 
 
 def updateBoard(board, player, movement):
-    '''
-    Return a flag which indicates that whether player can carry any opponent
-    '''
     pairs = pairsOfOpponentWillBeCarried(board,player,movement[1])
 
     # move a chess-piece to the new position
