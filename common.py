@@ -119,37 +119,6 @@ def heuristic(board, player):
     return rs
 
 
-def minimax(board, player, depth, maxDepth, alpha, beta, previousBoard):
-    '''
-    Return a tuple (best heuristic value, best movement)
-    '''
-    if depth == maxDepth:
-        return (heuristic(board,player),None)
-    else:
-        movements = generateMovements(board,player,previousBoard)
-        if len(movements) == 0:
-            return (heuristic(board,player),None)
-        bestMovement = None
-        for movement in movements:
-            tmpBoard = copyBoard(board)
-
-            # update board when player execute the move
-            updateBoard(tmpBoard,player,movement)
-
-            # get negative of best heuristic value of opponent after player execute the move
-            newValue = -minimax(tmpBoard,-player,depth+1, maxDepth, -beta, -alpha, board)[0]
-
-            if newValue>alpha:
-                alpha = newValue
-                bestMovement = movement
-
-            # cutoff  
-            if alpha>=beta:
-                return (alpha,bestMovement)
-
-        return (alpha,bestMovement)
-
-
 def updateBoard(board, player, movement):
     pairs = pairsOfOpponentWillBeCarried(board,player,movement[1])
 
