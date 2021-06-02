@@ -1,12 +1,7 @@
-from minimax import *
-from random import choice
+from minimax import move_minimax
+from monte_carlo import move_mcts
+from common import updateBoard, gameOver
 
-def gameOver(board, player):
-    for i in range(len(board)):
-        for j in range(len(board)):
-            if board[i][j] == player:
-                return False
-    return True
 
 def printBoard(board):
     for row in board:
@@ -21,19 +16,16 @@ def printBoard(board):
 
 def startGame(board):
     player = -1
-    previousBoardO = board
     while (True):
         movement = None
         if player == -1:
-            movement = move(board,player)
+            movement = move_minimax(board,player)
         else:
-            movement = choice(generateMovements(board,player,previousBoardO))
+            movement = move_mcts(board,player)
         updateBoard(board,player,movement)
-        if player==1:
-            previousBoardO = board
         printBoard(board)
         print()
-        if gameOver(board,-player):
+        if gameOver(board)!=0:
             break 
         player = - player
     
