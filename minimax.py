@@ -1,3 +1,4 @@
+import random
 from common import *
 
 class SupportMNM:
@@ -34,7 +35,7 @@ def minimax(board, player, depth, maxDepth, alpha, beta, previousBoard):
         return (alpha,bestMovement)
 
 def move_minimax(board, player):
-    maxDepth = 4
+    maxDepth = random.choice([1,2,3,4])
     # alpha = -16, beta = 16 according to the heuristic function
     bestMovement = minimax(board,player,0,maxDepth,-16,16,SupportMNM.previousBoard)[1]
     tmpBoard = board

@@ -5,7 +5,6 @@ from common import *
 class SupportMCTS:
     previousBoard = None
 
-
 class Node:
     def __init__(self):
         self.board = None
@@ -21,13 +20,14 @@ class Node:
         return len(self.unvisited_movement)==0
 
     def pickBestUCTChild(self):
-        uct = 0
-        best_uct_child = None
+        max_uct = 0
+        max_uct_child = None
         for child in self.children:
-            tmp_uct = child.w/child.n + 2*pow(math.log(self.n)/child.n,1/2)
-            if tmp_uct>uct:
-                best_uct_child = child
-        return best_uct_child
+            tmp_uct = child.w/child.n + pow(2,1/2)*pow(math.log(self.n)/child.n,1/2)
+            if tmp_uct>max_uct:
+                max_uct = tmp_uct
+                max_uct_child = child
+        return max_uct_child
 
     def pickUnVisitedChild(self):
         unvisited_movement = self.unvisited_movement.pop(0)
@@ -46,7 +46,7 @@ class Node:
         return child
 
     def pickBestMovement(self):
-        n = 0
+        n = 1
         best_child = None
         for child in self.children:
             if child.n > n:
@@ -55,29 +55,9 @@ class Node:
         return best_child.creating_movement
 
 
-def move_mcts(board, player):
-    trap = findTrap(board,player,SupportMCTS.previousBoard)
-    if trap!=None:
-        return trap
-    root = Node()
-    root.board = board
-    root.player = player
-    root.parent = None
-    root.children = []
-    root.w = 0
-    root.n = 0
-    root.unvisited_movement = generateMovements(board,player,SupportMCTS.previousBoard)
-    root.creating_movement = None
-    best_movement = monte_carlo_tree_search(root)
-    tmpBoard = copyBoard(board)
-    updateBoard(tmpBoard,player,best_movement)
-    SupportMCTS.previousBoard = tmpBoard
-    return best_movement
-
-
 def monte_carlo_tree_search(root:Node):
     i = 0
-    while (i<100):
+    while (i<200):
         leaf = traverse(root)
         simulation_result = rollout(leaf)
         backpropagate(leaf,simulation_result)
@@ -88,7 +68,10 @@ def monte_carlo_tree_search(root:Node):
 def traverse(node:Node):
     tmpNode = node
     while tmpNode.isFullyExpanded():
-        tmpNode = tmpNode.pickBestUCTChild()
+        flag = tmpNode.pickBestUCTChild()
+        if flag == None:
+            return tmpNode
+        tmpNode = flag
     return tmpNode.pickUnVisitedChild()
 
 
@@ -114,12 +97,32 @@ def backpropagate(node:Node, simulation_result):
             tmpNode.w+=1
         tmpNode = tmpNode.parent
 
-    
-# board = [[1, 1, 1, 1, 1],
-#         [1, 0, 0, 0, 1],
-#         [1, 0, 0, 0, -1],
-#         [-1, 0, 0, 0, -1],
-#         [-1, -1, -1, -1, -1]]
+
+def printTree(root:Node):
+    if (root!=None):
+        print(root.w,'/',root.n,sep='',end='-> ')
+        for child in root.children:
+            print(child.w,'/',child.n,sep='',end='| ')
+    print()
 
 
-# printTree(move(board,1))
+def move_mcts(board, player):
+    trap = findTrap(board,player,SupportMCTS.previousBoard)
+    if trap!=None:
+        return trap
+
+    root = Node()
+    root.board = copyBoard(board)
+    root.player = player
+    root.parent = None
+    root.children = []
+    root.w = 0
+    root.n = 0
+    root.unvisited_movement = generateMovements(board,player,SupportMCTS.previousBoard)
+    root.creating_movement = None
+          
+    best_movement = monte_carlo_tree_search(root)
+    tmpBoard = copyBoard(board)
+    updateBoard(tmpBoard,player,best_movement)
+    SupportMCTS.previousBoard = tmpBoard
+    return best_movement
