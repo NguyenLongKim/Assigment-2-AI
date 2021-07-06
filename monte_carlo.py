@@ -23,7 +23,7 @@ class Node:
         max_uct = 0
         max_uct_child = None
         for child in self.children:
-            tmp_uct = child.w/child.n + pow(2,1/2)*pow(math.log(self.n)/child.n,1/2)
+            tmp_uct = (child.n-child.w)/child.n + 2*pow(math.log(self.n)/child.n,1/2)
             if tmp_uct>max_uct:
                 max_uct = tmp_uct
                 max_uct_child = child
@@ -46,18 +46,18 @@ class Node:
         return child
 
     def pickBestMovement(self):
-        n = 1
+        best_value = 0
         best_child = None
         for child in self.children:
-            if child.n > n:
-                n = child.n
+            if (child.n-child.w)/child.n > best_value:
+                best_value = (child.n-child.w)/child.n
                 best_child = child
         return best_child.creating_movement
 
 
 def monte_carlo_tree_search(root:Node):
     i = 0
-    while (i<200):
+    while (i<100):
         leaf = traverse(root)
         simulation_result = rollout(leaf)
         backpropagate(leaf,simulation_result)
@@ -122,6 +122,7 @@ def move_mcts(board, player):
     root.creating_movement = None
           
     best_movement = monte_carlo_tree_search(root)
+    printTree(root)
     tmpBoard = copyBoard(board)
     updateBoard(tmpBoard,player,best_movement)
     SupportMCTS.previousBoard = tmpBoard
